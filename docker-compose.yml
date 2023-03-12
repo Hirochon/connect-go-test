@@ -1,0 +1,14 @@
+version: "3.8"
+services:
+  connect-go-test:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: connect-go-test
+    working_dir: /go/src/server
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./server:/go/src/server
+    ports:
+      - "9090:9090"
