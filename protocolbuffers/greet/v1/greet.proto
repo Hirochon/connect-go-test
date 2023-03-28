@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package protocolbuffers.greet.v1;
+
+option go_package = "github.com/Hirochon/connect-go-test/protocolbuffers/greet/v1;greetv1";
+
+message GreetUnaryRequest {
+  string name = 1;
+}
+
+message GreetUnaryResponse {
+  string greeting = 1;
+}
+
+service GreetService {
+  rpc GreetUnary(GreetUnaryRequest) returns (GreetUnaryResponse) {}
+}

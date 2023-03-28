@@ -12,3 +12,14 @@ services:
       - ./server:/go/src/server
     ports:
       - "9090:9090"
+  protocolbuffers:
+    build:
+      context: ./protocolbuffers
+      dockerfile: Dockerfile
+    container_name: protocolbuffers
+    working_dir: /usr/src/pb
+    tty: true
+    stdin_open: true
+    volumes:
+      - .:/usr/src/pb
+    command: ["make", "buf-lint-and-gen"]
