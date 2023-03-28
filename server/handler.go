@@ -37,3 +37,20 @@ func (s *GreetServer) GreetServerStream(
 	}
 	return nil
 }
+
+func (s *GreetServer) GreetClientStream(
+	ctx context.Context,
+	req *connect.ClientStream[greetv1.GreetClientStreamRequest],
+) (*connect.Response[greetv1.GreetClientStreamResponse], error) {
+	var names string
+	for req.Receive() {
+		if len(names) > 0 {
+			names += ", "
+		}
+		names += req.Msg().Name
+	}
+	res := connect.NewResponse(&greetv1.GreetClientStreamResponse{
+		Greeting: fmt.Sprintf("Hello, %s!", names),
+	})
+	return res, nil
+}
