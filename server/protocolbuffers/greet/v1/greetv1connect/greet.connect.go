@@ -7,7 +7,7 @@ package greetv1connect
 import (
 	context "context"
 	errors "errors"
-	v1 "github.com/Hirochon/connect-go-test/protocolbuffers/greet/v1"
+	v1 "github.com/Hirochon/connect-go-test/server/protocolbuffers/greet/v1"
 	connect_go "github.com/bufbuild/connect-go"
 	http "net/http"
 	strings "strings"
