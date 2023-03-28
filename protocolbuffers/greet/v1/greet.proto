@@ -12,6 +12,15 @@ message GreetUnaryResponse {
   string greeting = 1;
 }
 
+message GreetServerStreamRequest {
+  string name = 1;
+}
+
+message GreetServerStreamResponse {
+  string greeting = 1;
+}
+
 service GreetService {
   rpc GreetUnary(GreetUnaryRequest) returns (GreetUnaryResponse) {}
+  rpc GreetServerStream(GreetServerStreamRequest) returns (stream GreetServerStreamResponse) {}
 }
