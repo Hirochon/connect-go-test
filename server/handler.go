@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
 
 	greetv1 "github.com/Hirochon/connect-go-test/server/protocolbuffers/greet/v1"
 	"github.com/Hirochon/connect-go-test/server/protocolbuffers/greet/v1/greetv1connect"
@@ -53,4 +55,24 @@ func (s *GreetServer) GreetClientStream(
 		Greeting: fmt.Sprintf("Hello, %s!", names),
 	})
 	return res, nil
+}
+
+func (s *GreetServer) GreetBidiStream(
+	ctx context.Context,
+	stream *connect.BidiStream[greetv1.GreetBidiStreamRequest, greetv1.GreetBidiStreamResponse],
+) error {
+	for i := 0; ; i++ {
+		msg, err := stream.Receive()
+		if errors.Is(err, io.EOF) {
+			return nil
+		}
+		if err != nil {
+			connect.NewError(connect.CodeInternal, fmt.Errorf("failed to receive request: %w", err))
+		}
+		if err := stream.Send(&greetv1.GreetBidiStreamResponse{
+			Greeting: fmt.Sprintf("Hello, %s!", msg.Name),
+		}); err != nil {
+			return connect.NewError(connect.CodeInternal, fmt.Errorf("failed to send response: %w", err))
+		}
+	}
 }

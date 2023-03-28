@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"net/http/httptest"
+	"sync"
 	"testing"
 
 	greetv1 "github.com/Hirochon/connect-go-test/server/protocolbuffers/greet/v1"
@@ -153,6 +156,69 @@ func TestGreetClientStreamHandler(t *testing.T) {
 			if res.Msg.GetGreeting() != c.want {
 				t.Errorf("greeting got: %s, want: %s", res.Msg.GetGreeting(), c.want)
 			}
+		})
+	}
+}
+
+func TestGreetBidiStreamHandler(t *testing.T) {
+	t.Parallel()
+	mux := server()
+	server := httptest.NewUnstartedServer(mux)
+	server.EnableHTTP2 = true
+	server.StartTLS()
+	t.Cleanup(server.Close)
+	cases := []struct {
+		scenario string
+		name     string
+	}{
+		{
+			scenario: "Twitterのユーザー名",
+			name:     "heacet43",
+		},
+		{
+			scenario: "GitHubのユーザー名",
+			name:     "Hirochon",
+		},
+	}
+	for _, c := range cases {
+		c := c
+		t.Run(c.scenario, func(t *testing.T) {
+			t.Parallel()
+			client := greetv1connect.NewGreetServiceClient(
+				server.Client(),
+				server.URL,
+			)
+			stream := client.GreetBidiStream(context.Background())
+			var wg sync.WaitGroup
+			wg.Add(2)
+			go func() {
+				defer wg.Done()
+				for i := 0; i < 10; i++ {
+					if err := stream.Send(&greetv1.GreetBidiStreamRequest{
+						Name: fmt.Sprintf("%s (%d)", c.name, i),
+					}); err != nil {
+						t.Error(err)
+					}
+				}
+				stream.CloseRequest()
+			}()
+			go func() {
+				defer wg.Done()
+				for i := 0; i < 10; i++ {
+					msg, err := stream.Receive()
+					if errors.Is(err, io.EOF) {
+						break
+					}
+					if err != nil {
+						t.Error(err)
+					}
+					if msg.GetGreeting() != fmt.Sprintf("Hello, %s (%d)!", c.name, i) {
+						t.Errorf("greeting got: %s, want: %s", msg.GetGreeting(), fmt.Sprintf("Hello, %s! (%d)", c.name, i))
+					}
+				}
+				stream.CloseResponse()
+			}()
+			wg.Wait()
 		})
 	}
 }

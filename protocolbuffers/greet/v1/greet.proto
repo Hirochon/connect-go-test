@@ -28,8 +28,17 @@ message GreetClientStreamResponse {
   string greeting = 1;
 }
 
+message GreetBidiStreamRequest {
+  string name = 1;
+}
+
+message GreetBidiStreamResponse {
+  string greeting = 1;
+}
+
 service GreetService {
   rpc GreetUnary(GreetUnaryRequest) returns (GreetUnaryResponse) {}
   rpc GreetServerStream(GreetServerStreamRequest) returns (stream GreetServerStreamResponse) {}
   rpc GreetClientStream(stream GreetClientStreamRequest) returns (GreetClientStreamResponse) {}
+  rpc GreetBidiStream(stream GreetBidiStreamRequest) returns (stream GreetBidiStreamResponse) {}
 }
